@@ -24,9 +24,9 @@ $(document).ready(() => {
     });
 
     // Alert 
-    const message = $('.flash-data').data('tempdata');
     const error = $('.flash-data-error').data('tempdata');
     const info = $('.flash-data-info').data('tempdata');
+    const message = $('.flash-data').data('tempdata');
     if (error) {
         Swal.fire({
             title: 'Oops...',

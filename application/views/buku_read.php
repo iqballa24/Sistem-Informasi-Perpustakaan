@@ -94,27 +94,27 @@
         $('#table tbody').on('click', '.detail', function(e) {
 
             e.preventDefault();
-            const isbn = $(this).data('isbn');
-            const judul = $(this).data('judul');
-            const thnTerbit = $(this).data('terbit');
-            const gambar = $(this).data('gambar');
             const kategori = $(this).data('kategori');
             const penerbit = $(this).data('penerbit');
+            const thnTerbit = $(this).data('terbit');
+            const gambar = $(this).data('gambar');
+            const judul = $(this).data('judul');
+            const isbn = $(this).data('isbn');
             const rate = $(this).data('rate');
             const rak = $(this).data('rak');
 
             // Load content
-            $('#isbn').text(isbn);
-            $('#judul').text(judul);
             $('#thnTerbit').text(thnTerbit);
-            $('#kategori').text(kategori);
             $('#penerbit').text(penerbit);
+            $('#kategori').text(kategori);
+            $('#judul').text(judul);
+            $('#isbn').text(isbn);
             $('#rak').text(rak);
 
             console.log(rak);
 
             // load image
-            setImage.src = 'http://localhost/tb2/upload_folder/' + gambar;
+            setImage.src = `http://localhost/tb2/upload_folder/${gambar}`;
             setImage.classList.add("img-fluid", "image");
             images.appendChild(setImage);
 

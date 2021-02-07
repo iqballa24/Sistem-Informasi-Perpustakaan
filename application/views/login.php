@@ -52,15 +52,6 @@
                                 </div>
                                 <input type="submit" name="submit" value="Login" class="btn btn-primary btn-user btn-block">
                             </form>
-                            <hr>
-                            <div class="text-center">
-                                <a class="small" href="forgot-password.html">Forgot Password?</a>
-                            </div>
-                            <div class="text-center">
-                                <a class="small" href="register.html">Create an Account!</a>
-                            </div>
-                            </form>
-
                         </div>
                     </div>
                 </div>
