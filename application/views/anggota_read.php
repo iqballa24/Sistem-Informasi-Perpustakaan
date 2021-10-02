@@ -3,6 +3,8 @@
 	<div class="card-header">
 		<a href="<?php echo site_url('anggota/insert') ?>"><i class="fas fa-plus"></i>
 			Add New</a>
+		<a href="<?php echo site_url('anggota/import') ?>"><i class="fas fa-plus"></i>
+			Import</a>
 	</div>
 	<div class="card-body">
 		<div class="table-responsive">

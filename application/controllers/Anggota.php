@@ -1,36 +1,41 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
-class Anggota extends CI_Controller {
+class Anggota extends CI_Controller
+{
 
-	public function __construct() {
+	public function __construct()
+	{
 		parent::__construct();
 
 		if (empty($this->session->userdata('NIP'))) {
 			redirect('petugas/login');
 		}
 
-        // memanggil model
-        $this->load->model('anggota_model');
-    }
+		// memanggil model
+		$this->load->model('anggota_model');
+		// $this->load->library('grocery_CRUD');
+	}
 
-    public function index() {
+	public function index()
+	{
 		// mengarahkan ke function read
 		$this->read();
 	}
 
-	public function read() {
-	
+	public function read()
+	{
+
 		$NIP = $this->session->userdata('nama');
 
 		// mengirim data ke view
 		$output = array(
-						'theme_page' => 'anggota_read',
-						'judul' 	 => 'Data Anggota',
+			'theme_page' => 'anggota_read',
+			'judul' 	 => 'Data Anggota',
 
-						// data anggota dikirim ke view
-						'data_petugas' => $NIP
-					);
+			// data anggota dikirim ke view
+			'data_petugas' => $NIP
+		);
 
 		// memanggil file view
 		$this->load->view('theme/index', $output);
@@ -58,10 +63,10 @@ class Anggota extends CI_Controller {
 			$row[] = $field['email'];
 			$row[] = $field['password'];
 			$row[] = '
-					<a href="'.site_url('anggota/update/'.$field['id_anggota']). '" class="btn btn-warning btn-sm " title="Edit">
+					<a href="' . site_url('anggota/update/' . $field['id_anggota']) . '" class="btn btn-warning btn-sm " title="Edit">
 						<i class="fas fa-edit"></i> 
 					</a>
-					<a href="'.site_url('anggota/delete/'.$field['id_anggota']).'" class="btn btn-danger btn-sm btnHapus" title="Hapus" data = "'.$field['id_anggota'].'">
+					<a href="' . site_url('anggota/delete/' . $field['id_anggota']) . '" class="btn btn-danger btn-sm btnHapus" title="Hapus" data = "' . $field['id_anggota'] . '">
 						<i class="fas fa-trash-alt"></i> 
 					</a>';
 
@@ -80,23 +85,83 @@ class Anggota extends CI_Controller {
 		echo json_encode($output);
 	}
 
-	public function insert() {
+	public function insert()
+	{
 
 		$this->insert_submit();
 		$NIP = $this->session->userdata('nama');
-	
+
 		// mengirim data ke view
 		$output = array(
-						'theme_page' 	=> 'anggota_insert',
-						'judul' 	 	=> 'Tambah Data Anggota',
-						'data_petugas' 	=> $NIP
-					);
+			'theme_page' 	=> 'anggota_insert',
+			'judul' 	 	=> 'Tambah Data Anggota',
+			'data_petugas' 	=> $NIP
+		);
 
 		// memanggil file view
 		$this->load->view('theme/index', $output);
 	}
 
-	public function insert_submit() {
+	public function import()
+	{
+		$NIP = $this->session->userdata('nama');
+
+		// mengirim data ke view
+		$output = array(
+			'theme_page' 	=> 'anggota_import',
+			'judul' 	 	=> 'Import Data Anggota',
+			'data_petugas' 	=> $NIP
+		);
+
+		$this->load->view('theme/index', $output);
+	}
+
+	public function upload()
+	{
+		include APPPATH . 'third_party\PHPExcel\PHPExcel.php';
+
+		$config['upload_path']   = './upload_folder/excel/';
+		$config['allowed_types'] = 'xlsx|xls|csv';
+		$config['max_size']     = 10000;
+		$config['encrypt_name'] = true;
+
+		$this->load->library('upload', $config);
+
+		if (!$this->upload->do_upload('userfile')) {
+			$this->session->set_tempdata('error', 'Gagal Import!'. $this->upload->display_errors(), 1);
+			redirect('anggota/import');
+		} else {
+			$data_upload = $this->upload->data();
+			$excelrender = new PHPExcel_Reader_Excel2007();
+			$loadExcel = $excelrender->load('upload_folder/excel/' . $data_upload['file_name']);
+			$sheet = $loadExcel->getActiveSheet()->toArray(null, true, true, true, true, true);
+
+			$data = array();
+
+			$numrow = 1;
+			foreach ($sheet as $row) {
+				if ($numrow > 1) {
+					array_push($data, array(
+						'id_anggota' => $row['A'],
+						'nim' 		 => $row['B'],
+						'nama' 		 => $row['C'],
+						'prodi' 	 => $row['D'],
+						'email' 	 => $row['E'],
+						'password' 	 => $row['F'],
+					));
+				}
+				$numrow++;
+			}
+			$this->db->insert_batch('anggota', $data);
+			unlink(realpath('upload_folder/excel/' . $data_upload['file_name']));
+
+			$this->session->set_tempdata('message', 'Success Import', 1);
+			redirect('anggota/read');
+		}
+	}
+
+	public function insert_submit()
+	{
 
 		if ($this->input->post('submit') == 'Simpan') {
 
@@ -113,17 +178,17 @@ class Anggota extends CI_Controller {
 				$nama	  = $this->input->post('nama');
 				$prodi	  = $this->input->post('prodi');
 				$email	  = $this->input->post('email');
-		
+
 				// mengirim data ke model
 				$input = array(
-								// format : nama field/kolom table => data input dari view
-								'nim'  	 	=> $nim,
-								'nama' 		=> $nama,
-								'prodi' 	=> $prodi,
-								'password'  => $nim,
-								'email' 	=> $email
-							);
-		
+					// format : nama field/kolom table => data input dari view
+					'nim'  	 	=> $nim,
+					'nama' 		=> $nama,
+					'prodi' 	=> $prodi,
+					'password'  => $nim,
+					'email' 	=> $email
+				);
+
 				// memanggil function insert pada anggota_model.php
 				// function insert berfungsi menyimpan/create data ke table anggota di database
 				$data_anggota = $this->anggota_model->insert($input);
@@ -132,9 +197,7 @@ class Anggota extends CI_Controller {
 				$this->session->set_tempdata('message', 'Data berhasil ditambahkan !', 1);
 				redirect('anggota/read');
 			}
-
 		}
-
 	}
 
 	public function insert_check()
@@ -224,12 +287,13 @@ class Anggota extends CI_Controller {
 		}
 	}
 
-	public function delete() {
+	public function delete()
+	{
 		// menangkap id data yg dipilih dari view
 		$id = $this->uri->segment(3);
 
 		$this->db->db_debug = false; //disable debugging queries
-		
+
 		// Error handling
 		if (!$this->anggota_model->delete($id)) {
 			$msg =  $this->db->error();
@@ -237,7 +301,7 @@ class Anggota extends CI_Controller {
 		}
 
 		//mengembalikan halaman ke function read
-		$this->session->set_tempdata('message','Data berhasil dihapus',1);
+		$this->session->set_tempdata('message', 'Data berhasil dihapus', 1);
 		redirect('anggota/read');
 	}
 
@@ -245,10 +309,10 @@ class Anggota extends CI_Controller {
 	{
 		$data_anggota = $this->anggota_model->read();
 		$NIP = $this->session->userdata('nama');
-		
+
 		//mengirim data ke view
 		$output = array(
-			
+
 			//data provinsi dikirim ke view
 			'data_petugas' => $NIP,
 			'data_anggota' => $data_anggota
