@@ -14,7 +14,7 @@ class Anggota extends CI_Controller
 
 		// memanggil model
 		$this->load->model('anggota_model');
-		// $this->load->library('grocery_CRUD');
+		$this->load->library('grocery_CRUD');
 	}
 
 	public function index()

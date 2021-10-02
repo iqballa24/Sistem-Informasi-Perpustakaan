@@ -100,6 +100,17 @@
         </a>
     </li>
 
+    <!-- Nav Item - page Denda -->
+    <?php $i = $this->uri->segment(1) ?>
+    <li class="nav-item <?php if ($i == 'tester') {
+                            echo "active";
+                        } ?>">
+        <a class="nav-link" href="<?php echo site_url('tester'); ?>">
+            <i class="fas fa-fw fa-money-bill-wave"></i>
+            <span>Tester</span>
+        </a>
+    </li>
+
     <!-- Divider -->
     <hr class="sidebar-divider d-none d-md-block">
 
