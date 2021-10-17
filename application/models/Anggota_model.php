@@ -82,6 +82,11 @@ class Anggota_model extends CI_Model {
 		return $this->db->count_all_results();
 	}
 
+	public function anggota_list(){
+        $hasil=$this->db->get('anggota');
+        return $hasil->result();
+    }
+
 	// function read berfungsi mengambil/read data dari table anggota di database
 	public function read() {
 

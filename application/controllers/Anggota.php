@@ -63,9 +63,7 @@ class Anggota extends CI_Controller
 			$row[] = $field['email'];
 			$row[] = $field['password'];
 			$row[] = '
-					<a href="' . site_url('anggota/update/' . $field['id_anggota']) . '" class="btn btn-warning btn-sm " title="Edit">
-						<i class="fas fa-edit"></i> 
-					</a>
+					<a id="btn_edit" class="btn btn-warning btn-sm item_update" data="' . $field['id_anggota'] . '"><i class="fas fa-edit"></i></a>
 					<a href="' . site_url('anggota/delete/' . $field['id_anggota']) . '" class="btn btn-danger btn-sm btnHapus" title="Hapus" data = "' . $field['id_anggota'] . '">
 						<i class="fas fa-trash-alt"></i> 
 					</a>';
@@ -100,64 +98,6 @@ class Anggota extends CI_Controller
 
 		// memanggil file view
 		$this->load->view('theme/index', $output);
-	}
-
-	public function import()
-	{
-		$NIP = $this->session->userdata('nama');
-
-		// mengirim data ke view
-		$output = array(
-			'theme_page' 	=> 'anggota_import',
-			'judul' 	 	=> 'Import Data Anggota',
-			'data_petugas' 	=> $NIP
-		);
-
-		$this->load->view('theme/index', $output);
-	}
-
-	public function upload()
-	{
-		include APPPATH . 'third_party\PHPExcel\PHPExcel.php';
-
-		$config['upload_path']   = './upload_folder/excel/';
-		$config['allowed_types'] = 'xlsx|xls|csv';
-		$config['max_size']     = 10000;
-		$config['encrypt_name'] = true;
-
-		$this->load->library('upload', $config);
-
-		if (!$this->upload->do_upload('userfile')) {
-			$this->session->set_tempdata('error', 'Gagal Import!'. $this->upload->display_errors(), 1);
-			redirect('anggota/import');
-		} else {
-			$data_upload = $this->upload->data();
-			$excelrender = new PHPExcel_Reader_Excel2007();
-			$loadExcel = $excelrender->load('upload_folder/excel/' . $data_upload['file_name']);
-			$sheet = $loadExcel->getActiveSheet()->toArray(null, true, true, true, true, true);
-
-			$data = array();
-
-			$numrow = 1;
-			foreach ($sheet as $row) {
-				if ($numrow > 1) {
-					array_push($data, array(
-						'id_anggota' => $row['A'],
-						'nim' 		 => $row['B'],
-						'nama' 		 => $row['C'],
-						'prodi' 	 => $row['D'],
-						'email' 	 => $row['E'],
-						'password' 	 => $row['F'],
-					));
-				}
-				$numrow++;
-			}
-			$this->db->insert_batch('anggota', $data);
-			unlink(realpath('upload_folder/excel/' . $data_upload['file_name']));
-
-			$this->session->set_tempdata('message', 'Success Import', 1);
-			redirect('anggota/read');
-		}
 	}
 
 	public function insert_submit()
@@ -320,5 +260,137 @@ class Anggota extends CI_Controller
 
 		//memanggil file view
 		$this->load->view('anggota_export', $output);
+	}
+
+	function save()
+	{
+
+		//aturan validasi input login
+		$this->form_validation->set_rules('nim', 'nim', 'required|min_length[5]|numeric');
+		$this->form_validation->set_rules('nama', 'nama', 'required');
+		$this->form_validation->set_rules('program_studi', 'prodi', 'required');
+		$this->form_validation->set_rules('email', 'email', 'required|valid_email');
+
+		if ($this->form_validation->run() == FALSE) {
+			$errors = strip_tags(validation_errors());
+			// $errors = array(
+			// 	'error'   => true,
+			// 	'nim' => form_error('nim'),
+			// 	'nama' => form_error('nama'),
+			// 	'program_studi' => form_error('program_studi'),
+			// 	'email' => form_error('email')
+			// );
+			echo json_encode(['error' => $errors]);
+			die();
+		} else {
+			echo json_encode(['success' => 'Record added successfully.']);
+
+			$data = array(
+				// menangkap data input dari view
+				'nim'	  => $this->input->post('nim'),
+				'nama'	  => $this->input->post('nama'),
+				'prodi'	  => $this->input->post('program_studi'),
+				'email'	  => $this->input->post('email'),
+				'password' => $this->input->post('nim'),
+
+			);
+			$result = $this->db->insert('anggota', $data);
+			return $result;
+		}
+	}
+
+	function get_update($id)
+	{
+		$id = $this->uri->segment(3);
+
+		$data_anggota_single = $this->anggota_model->read_single($id);
+
+		echo json_encode($data_anggota_single);
+	}
+
+	function Simpan()
+	{
+		//aturan validasi input login
+		$this->form_validation->set_rules('nim_u', 'nim', 'required|min_length[5]|numeric');
+		$this->form_validation->set_rules('nama_u', 'nama', 'required');
+		$this->form_validation->set_rules('program_studi_u', 'prodi', 'required');
+		$this->form_validation->set_rules('email_u', 'email', 'required|valid_email');
+
+		if ($this->form_validation->run() == FALSE) {
+			$errors = strip_tags(validation_errors());
+			echo json_encode(['error' => $errors]);
+			die();
+		} else {
+			echo json_encode(['success' => 'Record update successfully.']);
+
+			$input = array(
+				// menangkap data input dari view
+				'nim'	  => $this->input->post('nim_u'),
+				'nama'	  => $this->input->post('nama_u'),
+				'prodi'	  => $this->input->post('program_studi_u'),
+				'email'	  => $this->input->post('email_u')
+
+			);
+			$data_anggota = $this->anggota_model->update($input, $this->input->post('id_anggota'));
+			return $data_anggota;
+		}
+	}
+
+	public function import()
+	{
+		$NIP = $this->session->userdata('nama');
+
+		// mengirim data ke view
+		$output = array(
+			'theme_page' 	=> 'anggota_import',
+			'judul' 	 	=> 'Import Data Anggota',
+			'data_petugas' 	=> $NIP
+		);
+
+		$this->load->view('theme/index', $output);
+	}
+
+	public function upload()
+	{
+		include APPPATH . 'third_party\PHPExcel\PHPExcel.php';
+
+		$config['upload_path']   = './upload_folder/excel/';
+		$config['allowed_types'] = 'xlsx|xls|csv';
+		$config['max_size']     = 10000;
+		$config['encrypt_name'] = true;
+
+		$this->load->library('upload', $config);
+
+		if (!$this->upload->do_upload('userfile')) {
+			$this->session->set_tempdata('error', 'Gagal Import!' . $this->upload->display_errors(), 1);
+			redirect('anggota/import');
+		} else {
+			$data_upload = $this->upload->data();
+			$excelrender = new PHPExcel_Reader_Excel2007();
+			$loadExcel = $excelrender->load('upload_folder/excel/' . $data_upload['file_name']);
+			$sheet = $loadExcel->getActiveSheet()->toArray(null, true, true, true, true, true);
+
+			$data = array();
+
+			$numrow = 1;
+			foreach ($sheet as $row) {
+				if ($numrow > 1) {
+					array_push($data, array(
+						'id_anggota' => $row['A'],
+						'nim' 		 => $row['B'],
+						'nama' 		 => $row['C'],
+						'prodi' 	 => $row['D'],
+						'email' 	 => $row['E'],
+						'password' 	 => $row['F'],
+					));
+				}
+				$numrow++;
+			}
+			$this->db->insert_batch('anggota', $data);
+			unlink(realpath('upload_folder/excel/' . $data_upload['file_name']));
+
+			$this->session->set_tempdata('message', 'Success Import', 1);
+			redirect('anggota/read');
+		}
 	}
 }
